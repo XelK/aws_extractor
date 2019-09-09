@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>Aws Extractor</title>
+	</head>
+	<body>
+		{% if regions %}
+		   <h1>Regions with running EC2 instances: </h1>
+		   {% for key in regions %}
+		    <dt><a href="region/{{ key }}">{{ key }}</a></dt>
+		    {% endfor %}
+		{% endif %}
+		{% if selected_region %}
+		   <h1>Running EC2 instances on {{current_region}} region: </h1>
+		   {% for instance in selected_region %}
+		    <dt><a href="/ec2/{{ instance }}">{{ instance }}</a></dt>
+		    {% endfor %}
+		{% endif %}
+		{% if selected_instance %}
+		   <h1>EC2 {{current_instance}} instance details : </h1>
+		   {% for key, value in selected_instance.items()%}
+		    <dt>{{ key }} : {{ value }}</dt>
+		   {% endfor %}
+		{% endif %}
+	</body>
+</html>
+
+ 
