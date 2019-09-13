@@ -67,11 +67,28 @@ resource "aws_instance" "aws_extractor" {
   subnet_id = "${aws_subnet.public-1.id}"
   key_name = "${aws_key_pair.myawskeypair.key_name}"
   
-  user_data = <<-EOF
-  #!/bin/bash
-  echo "hello, world" > index.html
-  nohup busybox httpd -f -p 8080 &
-  EOF
+#  user_data = <<-EOF
+#  #!/bin/bash
+#  echo "hello, world" > index.html
+#  nohup busybox httpd -f -p 8080 &
+#  EOF
+
+ provisioner "remote-exec" {
+   inline = [
+     "sudo apt update && apt install python3-pip gunicorn -y"
+     "mkdir app", 
+     "cd /app", 
+     "git clone https://github.com/XelK/aws_extractor.git ."
+     "pip3 install -r requirements.txt"
+   ]
+
+   connection {
+    type     = "ssh"
+    user     = "ubuntu"
+    private_key = "${file("awskey")}"
+    host     = "${aws_instance.aws_extractor.public_ip}"
+  }
+ }
 
   lifecycle {
     create_before_destroy = true
@@ -122,6 +139,7 @@ resource "aws_security_group" "lb_sg" {
     to_port         = 0
     protocol        = "-1"
     cidr_blocks     = ["0.0.0.0/0"]
+  #  prefix_list_ids = ["pl-12c4e678"]
   }
 
   lifecycle {
@@ -179,7 +197,7 @@ resource "aws_security_group" "ssh" {
       from_port = 22
       to_port = 22
       protocol = "tcp"
-      cidr_blocks = ["2.230.X.X/32"]  # my  ip
+      cidr_blocks = ["2.230.156.111/32"]  # my home ip
   }
   
   lifecycle {
@@ -210,17 +228,5 @@ output "lb_public_dns" {
   value = "${aws_lb.alb.dns_name}"
 }
 
-#   provisioner "local-exec"{
-#       command = "echo ${aws_instance.aws_extractor.public_ip} > ip_address.txt"
-#   }
-# }
-# resource "aws_eip" "ip" {
-#   vpc = true
-#   instance = aws_instance.aws_extractor.id
-# }
-
-# output "ip" {
-#   value = aws_eip.ip.public_ip
-# }
 
 
